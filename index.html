@@ -148,7 +148,7 @@
 <body>
   <h1 class="title">SNAKE</h1>
   <div class="score">Score : <span id="score">0</span></div>
-  <div class="food-picker">Pommes : <input type="number" id="foodCount" min="1" max="10" value="1"></div>
+  <div class="food-picker">Pommes : <input type="number" id="foodCount" min="1" max="150" value="1"></div>
 
   <div class="board-wrap">
     <canvas id="board" width="400" height="400"></canvas>
@@ -193,7 +193,7 @@
       speed = BASE_SPEED;
       running = false;
       scoreEl.textContent = '0';
-      targetFoods = Math.max(1, Math.min(10, parseInt(foodCountInput.value) || 1));
+      targetFoods = Math.max(1, Math.min(150, parseInt(foodCountInput.value) || 1));
       placeFoods();
       draw();
     }
