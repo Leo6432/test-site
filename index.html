@@ -113,6 +113,31 @@
       transform: translateY(0);
     }
 
+    .food-picker {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: #9aa3b8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .food-picker input {
+      width: 3.5rem;
+      padding: 0.3rem 0.5rem;
+      background: #1a1d29;
+      color: #e8eaf0;
+      border: 2px solid #2a2e40;
+      border-radius: 6px;
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+    }
+
+    .food-picker input:focus {
+      border-color: #4ade80;
+    }
+
     .hint {
       margin-top: 1rem;
       font-size: 0.85rem;
@@ -123,6 +148,7 @@
 <body>
   <h1 class="title">SNAKE</h1>
   <div class="score">Score : <span id="score">0</span></div>
+  <div class="food-picker">Pommes : <input type="number" id="foodCount" min="1" max="10" value="1"></div>
 
   <div class="board-wrap">
     <canvas id="board" width="400" height="400"></canvas>
@@ -143,6 +169,7 @@
     const overlayMessage = document.getElementById('overlayMessage');
     const overlaySub = document.getElementById('overlaySub');
     const startBtn = document.getElementById('startBtn');
+    const foodCountInput = document.getElementById('foodCount');
 
     const GRID = 20;                  // taille d'une case en pixels
     const COLS = canvas.width / GRID; // 20 colonnes
@@ -152,7 +179,7 @@
     const MIN_SPEED = 60;             // vitesse max
     const SPEED_STEP = 15;            // accélération toutes les 5 pommes
 
-    let snake, dir, nextDir, food, score, speed, running, loopTimer;
+    let snake, dir, nextDir, foods, score, speed, running, loopTimer, targetFoods;
 
     function reset() {
       snake = [
@@ -166,18 +193,22 @@
       speed = BASE_SPEED;
       running = false;
       scoreEl.textContent = '0';
-      placeFood();
+      targetFoods = Math.max(1, Math.min(10, parseInt(foodCountInput.value) || 1));
+      placeFoods();
       draw();
     }
 
-    function placeFood() {
-      let ok = false;
-      while (!ok) {
-        food = {
-          x: Math.floor(Math.random() * COLS),
-          y: Math.floor(Math.random() * ROWS)
-        };
-        ok = !snake.some(s => s.x === food.x && s.y === food.y);
+    function placeFoods() {
+      foods = [];
+      for (let i = 0; i < targetFoods; i++) {
+        let ok = false;
+        while (!ok) {
+          const fx = Math.floor(Math.random() * COLS);
+          const fy = Math.floor(Math.random() * ROWS);
+          ok = !snake.some(s => s.x === fx && s.y === fy)
+              && !foods.some(f => f.x === fx && f.y === fy);
+          if (ok) foods.push({ x: fx, y: fy });
+        }
       }
     }
 
@@ -199,7 +230,9 @@
 
       snake.unshift(head);
 
-      if (head.x === food.x && head.y === food.y) {
+      const foodIdx = foods.findIndex(f => f.x === head.x && f.y === head.y);
+      if (foodIdx !== -1) {
+        foods.splice(foodIdx, 1);
         score += 1;
         scoreEl.textContent = String(score);
         // Vitesse +15ms toutes les 5 pommes, plafonnée
@@ -207,7 +240,7 @@
           speed = Math.max(MIN_SPEED, speed - SPEED_STEP);
           restartLoop();
         }
-        placeFood();
+        placeFoods();
       } else {
         snake.pop();
       }
@@ -228,17 +261,19 @@
         }
       }
 
-      // Pomme
+      // Pommes
       ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      ctx.arc(
-        food.x * GRID + GRID / 2,
-        food.y * GRID + GRID / 2,
-        GRID / 2 - 3,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
+      foods.forEach(f => {
+        ctx.beginPath();
+        ctx.arc(
+          f.x * GRID + GRID / 2,
+          f.y * GRID + GRID / 2,
+          GRID / 2 - 3,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+      });
 
       // Serpent
       snake.forEach((seg, i) => {
