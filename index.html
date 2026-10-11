@@ -122,8 +122,8 @@
       gap: 0.5rem;
     }
 
-    .food-picker input {
-      width: 3.5rem;
+    .food-picker input,
+    .food-picker select {
       padding: 0.3rem 0.5rem;
       background: #1a1d29;
       color: #e8eaf0;
@@ -149,6 +149,14 @@
   <h1 class="title">SNAKE</h1>
   <div class="score">Score : <span id="score">0</span></div>
   <div class="food-picker">Pommes : <input type="number" id="foodCount" min="1" max="150" value="1"></div>
+  <div class="food-picker">Taille de la carte : <select id="boardSize">
+    <option value="100">100x100</option>
+    <option value="125">125x125</option>
+    <option value="150">150x150</option>
+    <option value="175">175x175</option>
+    <option value="200">200x200</option>
+    <option value="250">250x250</option>
+  </select></div>
 
   <div class="board-wrap">
     <canvas id="board" width="400" height="400"></canvas>
@@ -170,10 +178,19 @@
     const overlaySub = document.getElementById('overlaySub');
     const startBtn = document.getElementById('startBtn');
     const foodCountInput = document.getElementById('foodCount');
+    const boardSizeInput = document.getElementById('boardSize');
 
-    const GRID = 20;                  // taille d'une case en pixels
-    const COLS = canvas.width / GRID; // 20 colonnes
-    const ROWS = canvas.height / GRID; // 20 lignes
+    const BOARD_SIZES = [100, 125, 150, 175, 200, 250];
+    let GRID, COLS, ROWS;             // grille et dimensions de la carte
+
+    function applyBoardSize(px) {
+      px = BOARD_SIZES.includes(px) ? px : 250;
+      canvas.width = px;
+      canvas.height = px;
+      COLS = Math.max(10, Math.round(px / 10));
+      ROWS = COLS;
+      GRID = px / COLS;
+    }
 
     const BASE_SPEED = 140;           // ms par tick au départ
     const MIN_SPEED = 60;             // vitesse max
@@ -182,10 +199,12 @@
     let snake, dir, nextDir, foods, score, speed, running, loopTimer, targetFoods;
 
     function reset() {
+      const cx = Math.floor(COLS / 2);
+      const cy = Math.floor(ROWS / 2);
       snake = [
-        { x: 9, y: 10 },
-        { x: 8, y: 10 },
-        { x: 7, y: 10 }
+        { x: cx - 1, y: cy },
+        { x: cx - 2, y: cy },
+        { x: cx - 3, y: cy }
       ];
       dir = { x: 1, y: 0 };
       nextDir = { x: 1, y: 0 };
@@ -329,6 +348,12 @@
 
     document.addEventListener('keydown', handleKey);
     startBtn.addEventListener('click', startGame);
+
+    applyBoardSize(parseInt(boardSizeInput.value) || 250);
+    boardSizeInput.addEventListener('change', () => {
+      applyBoardSize(parseInt(boardSizeInput.value) || 250);
+      if (!running) reset();
+    });
 
     reset();
   </script>
